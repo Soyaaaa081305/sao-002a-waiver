@@ -3,61 +3,520 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SAO 002A Waiver & Consent Form Generator | Malaya & JISSA</title>
+  <title>SAO Form 002A Waiver & Consent Generator | Malaya & JISSA</title>
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- jsPDF for pristine client-side PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Merriweather"', 'serif'],
+            cinzel: ['"Cinzel"', 'serif'],
+            signature: ['"Caveat"', 'cursive'],
+          },
+          colors: {
+            malaya: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              900: '#78350f',
+            },
+            jissa: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .canvas-container {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+    }
+    
+    /* Document page styling */
+    #doc-preview-wrapper {
+      position: relative;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .draggable-box {
+      position: absolute;
+      cursor: move;
+      border: 1px dashed rgba(59, 130, 246, 0.5);
+      border-radius: 4px;
+      padding: 1px 3px;
+      transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+    }
+    .draggable-box:hover {
+      border-color: #3b82f6;
+      background-color: rgba(59, 130, 246, 0.08);
+    }
+    .draggable-box.active {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+      background-color: rgba(245, 158, 11, 0.05);
+      z-index: 50;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-6 selection:bg-amber-500 selection:text-black">
-  <div class="max-w-xl w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl text-center space-y-6 relative overflow-hidden">
-    <div class="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-    
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-400">
-      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> SAO Mandatory Requirement • Due Oct 29, 11:59 PM
-    </div>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black">
 
-    <div class="space-y-2">
-      <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-        SAO 002A Consent & Waiver Generator
-      </h1>
-      <p class="text-sm text-slate-400 leading-relaxed">
-        Official automated form filler and digital waiver tool for <strong>Malaya</strong> & <strong>JISSA</strong> members.
-      </p>
-    </div>
-
-    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 text-left space-y-3">
-      <div class="flex items-center justify-between text-xs font-medium text-slate-300">
-        <span>Submission Status:</span>
-        <span class="text-emerald-400 font-semibold">System Deploying</span>
+  <!-- TOP APP HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div id="org-logo-badge" class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg shadow-amber-500/20">
+          M
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
+              SAO 002A Consent & Waiver Generator
+            </h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              Auto-Filler
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Center for Student Activities and Discipline • Student Affairs Office (SAO)
+          </p>
+        </div>
       </div>
-      <p class="text-xs text-slate-400 leading-relaxed">
-        The automated step-by-step form filler with digital signature canvas and auto-export is being updated. In the meantime, you can also access the templates directly below.
-      </p>
-    </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-      <a href="https://drive.google.com/drive/u/0/folders/1vDQ7dbCxyB2_UHL032OnlZZRJxUHrACl" target="_blank" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition-all shadow-lg shadow-amber-500/20">
-        📁 Malaya Drive Folder
-      </a>
-      <a href="https://drive.google.com/drive/folders/1OT8x7mthyEwdF_QPkgRDgA-uH2Wv3DPd" target="_blank" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-all shadow-lg shadow-blue-600/20">
-        📁 JISSA Drive Folder
-      </a>
-    </div>
+      <!-- Organization Switcher -->
+      <div class="flex items-center bg-slate-950/80 p-1 rounded-2xl border border-slate-800">
+        <button id="btn-org-malaya" onclick="setOrganization('MALAYA')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30">
+          <span>✨</span> MALAYA
+        </button>
+        <button id="btn-org-jissa" onclick="setOrganization('JISSA')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-xs text-slate-400 hover:text-white transition-all">
+          <span>💻</span> JISSA
+        </button>
+      </div>
 
-    <div class="pt-2">
-      <a href="https://www.canva.com/design/DAHZG3Bf9V4/teHeI8ZtYK7GuONiFeYBUQ/edit" target="_blank" class="text-xs text-slate-400 hover:text-slate-200 underline decoration-slate-600 transition-colors">
-        🎨 Open Manual Canva Template
-      </a>
+      <!-- Quick Action Badges & Submission Links -->
+      <div class="flex items-center gap-2">
+        <a id="btn-drive-link" href="https://drive.google.com/drive/u/0/folders/1vDQ7dbCxyB2_UHL032OnlZZRJxUHrACl" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+          <span>📁</span>
+          <span id="txt-drive-label">Malaya Drive</span>
+        </a>
+        <a href="https://www.canva.com/design/DAHZG3Bf9V4/teHeI8ZtYK7GuONiFeYBUQ/edit" target="_blank" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 transition-colors">
+          <span>🎨</span> Canva
+        </a>
+      </div>
+
     </div>
+  </header>
+
+  <!-- DEADLINE BANNER -->
+  <div class="bg-gradient-to-r from-amber-600/15 via-rose-600/15 to-blue-600/15 border-b border-amber-500/20 px-4 py-2 text-center text-xs text-amber-200 flex items-center justify-center gap-2 font-medium">
+    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+    <span><strong>MANDATORY SAO COMPLIANCE:</strong> Submission deadline is <strong>Wednesday, October 29, 2026 at 11:59 PM</strong>.</span>
   </div>
 
-  <footer class="mt-8 text-xs text-slate-500">
-    Student Affairs Office (SAO) Compliance • Malaya & JISSA
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto w-full flex-1 p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- LEFT SIDEBAR: STEP-BY-STEP INPUT WIZARD -->
+    <div class="lg:col-span-5 space-y-4">
+      
+      <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xl backdrop-blur-md space-y-5">
+        
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>📝</span> Form Inputs & Text Boxes
+            </h2>
+            <p class="text-xs text-slate-400">Everything syncs live with the preview on the right.</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="fillSampleData()" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all">
+              Sample
+            </button>
+            <button onclick="resetForm()" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 border border-slate-700 transition-all">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION 1: HEADER & REVISION -->
+        <div class="space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            1. Organization & Revision Info
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-1">Organization Name</span>
+              <input id="input-org-name" type="text" oninput="updateField('orgName', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-semibold" value="MALAYA" />
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-1">Form Date</span>
+              <input id="input-form-date" type="text" oninput="updateField('formDate', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" value="October 29, 2026" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-slate-400">Revision No.</span>
+                <span class="text-[10px] text-amber-400">Whited Out</span>
+              </div>
+              <input id="input-rev-no" type="text" oninput="updateField('revNo', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" value="01" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-slate-400">Revision Date</span>
+                <span class="text-[10px] text-amber-400">Whited Out</span>
+              </div>
+              <input id="input-rev-date" type="text" oninput="updateField('revDate', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" value="August 2026" />
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: STUDENT DETAILS -->
+        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            2. Student Details
+          </label>
+          <div>
+            <span class="text-[11px] text-slate-400 block mb-1">Full Name of Student (Printed Name)</span>
+            <input id="input-student-name" type="text" oninput="updateField('studentName', this.value.toUpperCase())" placeholder="e.g. DELA CRUZ, JUAN P." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-semibold uppercase tracking-wide" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-1">Student Number</span>
+              <input id="input-student-number" type="text" oninput="updateField('studentNumber', this.value)" placeholder="e.g. 2026123456" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-mono" />
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-1">Program & Year (Optional)</span>
+              <input id="input-student-program" type="text" oninput="updateField('studentProgram', this.value)" placeholder="e.g. BSCS - 2nd Year" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: PARENT / GUARDIAN DETAILS -->
+        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            3. Parent / Legal Guardian Details
+          </label>
+          <div>
+            <span class="text-[11px] text-slate-400 block mb-1">Full Name of Parent / Legal Guardian</span>
+            <input id="input-parent-name" type="text" oninput="updateField('parentName', this.value.toUpperCase())" placeholder="e.g. DELA CRUZ, MARIA P." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-semibold uppercase tracking-wide" />
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 block mb-1">Relationship to Student</span>
+            <select id="input-relationship" onchange="updateField('relationship', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+              <option value="PARENT / LEGAL GUARDIAN">Parent / Legal Guardian</option>
+              <option value="MOTHER">Mother</option>
+              <option value="FATHER">Father</option>
+              <option value="LEGAL GUARDIAN">Legal Guardian</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECTION 4: STUDENT SIGNATURE -->
+        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              4. Student Signature
+            </label>
+            <!-- Blank Signature Checkbox -->
+            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs text-amber-400">
+              <input type="checkbox" id="check-student-blank" onchange="toggleBlankSignature('student', this.checked)" class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0" />
+              <span>Blank (Print to Sign)</span>
+            </label>
+          </div>
+
+          <div id="student-sig-wrapper" class="space-y-2">
+            <!-- Draw vs Upload Tabs -->
+            <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800 text-xs">
+              <button onclick="setSigMode('student', 'draw')" id="btn-tab-student-draw" class="flex-1 py-1 rounded-lg font-semibold bg-slate-800 text-white">
+                ✍️ Draw
+              </button>
+              <button onclick="setSigMode('student', 'upload')" id="btn-tab-student-upload" class="flex-1 py-1 rounded-lg font-semibold text-slate-400 hover:text-white">
+                📁 Upload PNG/Photo
+              </button>
+            </div>
+
+            <!-- Drawing Canvas -->
+            <div id="student-draw-pane" class="space-y-2">
+              <div class="relative bg-white rounded-xl border-2 border-dashed border-slate-700 overflow-hidden h-28">
+                <canvas id="canvas-student-sig" width="400" height="112" class="w-full h-full cursor-crosshair touch-none"></canvas>
+                <div class="absolute bottom-1 right-2 text-[10px] text-slate-400 pointer-events-none">Sign here with finger / mouse</div>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400">Ink:</span>
+                  <button onclick="setPenColor('student', '#0f172a')" class="w-4 h-4 rounded-full bg-slate-900 border border-slate-500 ring-2 ring-blue-500"></button>
+                  <button onclick="setPenColor('student', '#1e3a8a')" class="w-4 h-4 rounded-full bg-blue-900 border border-slate-500"></button>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="clearSig('student')" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Pane -->
+            <div id="student-upload-pane" class="hidden space-y-2">
+              <input type="file" id="file-student-sig" accept="image/*" onchange="handleSigUpload('student', this)" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700" />
+              <label class="flex items-center gap-2 text-[11px] text-slate-400">
+                <input type="checkbox" id="check-student-knockout" checked onchange="updateSigFromUpload('student')" class="rounded bg-slate-950 text-amber-500" />
+                <span>Auto-remove photo background (transparent ink)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5: PARENT / GUARDIAN SIGNATURE -->
+        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              5. Parent / Legal Guardian Signature
+            </label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs text-amber-400">
+              <input type="checkbox" id="check-parent-blank" onchange="toggleBlankSignature('parent', this.checked)" class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0" />
+              <span>Blank (Print to Sign)</span>
+            </label>
+          </div>
+
+          <div id="parent-sig-wrapper" class="space-y-2">
+            <!-- Draw vs Upload Tabs -->
+            <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800 text-xs">
+              <button onclick="setSigMode('parent', 'draw')" id="btn-tab-parent-draw" class="flex-1 py-1 rounded-lg font-semibold bg-slate-800 text-white">
+                ✍️ Draw
+              </button>
+              <button onclick="setSigMode('parent', 'upload')" id="btn-tab-parent-upload" class="flex-1 py-1 rounded-lg font-semibold text-slate-400 hover:text-white">
+                📁 Upload PNG/Photo
+              </button>
+            </div>
+
+            <!-- Drawing Canvas -->
+            <div id="parent-draw-pane" class="space-y-2">
+              <div class="relative bg-white rounded-xl border-2 border-dashed border-slate-700 overflow-hidden h-28">
+                <canvas id="canvas-parent-sig" width="400" height="112" class="w-full h-full cursor-crosshair touch-none"></canvas>
+                <div class="absolute bottom-1 right-2 text-[10px] text-slate-400 pointer-events-none">Parent signature here</div>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400">Ink:</span>
+                  <button onclick="setPenColor('parent', '#0f172a')" class="w-4 h-4 rounded-full bg-slate-900 border border-slate-500 ring-2 ring-blue-500"></button>
+                  <button onclick="setPenColor('parent', '#1e3a8a')" class="w-4 h-4 rounded-full bg-blue-900 border border-slate-500"></button>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="clearSig('parent')" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Pane -->
+            <div id="parent-upload-pane" class="hidden space-y-2">
+              <input type="file" id="file-parent-sig" accept="image/*" onchange="handleSigUpload('parent', this)" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700" />
+              <label class="flex items-center gap-2 text-[11px] text-slate-400">
+                <input type="checkbox" id="check-parent-knockout" checked onchange="updateSigFromUpload('parent')" class="rounded bg-slate-950 text-amber-500" />
+                <span>Auto-remove photo background (transparent ink)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 6: DOWNLOAD & SUBMIT -->
+        <div class="pt-4 border-t border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span>Target Filename:</span>
+            <code id="txt-target-filename" class="text-amber-400 font-mono font-bold">LASTNAME_002A.pdf</code>
+          </div>
+
+          <button onclick="exportDocument('pdf')" class="w-full py-3.5 px-4 rounded-xl font-extrabold text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 transform active:scale-[0.99]">
+            <span>📥</span> Download Official 002A PDF
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="exportDocument('png')" class="py-2.5 px-3 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+              <span>🖼️</span> Export PNG
+            </button>
+            <a id="btn-submit-drive-action" href="https://drive.google.com/drive/u/0/folders/1vDQ7dbCxyB2_UHL032OnlZZRJxUHrACl" target="_blank" class="py-2.5 px-3 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5">
+              <span>🚀</span> Submit to Drive
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT MAIN: LIVE DOCUMENT CANVAS PREVIEW & INTERACTIVE TEXT BOXES -->
+    <div class="lg:col-span-7 space-y-3">
+      
+      <!-- Preview Controls Bar -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg">
+        
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-300 flex items-center gap-1.5">
+            <span>👁️</span> Live Document
+          </span>
+          <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700">
+            166.5 × 215.9mm (Half-Sheet)
+          </span>
+        </div>
+
+        <!-- Render Mode Switcher -->
+        <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <button id="btn-mode-vector" onclick="setRenderMode('vector')" class="px-2.5 py-1 rounded-lg font-semibold text-xs bg-slate-800 text-white shadow-sm">
+            ✨ Pristine Form
+          </button>
+          <button id="btn-mode-scanned" onclick="setRenderMode('scanned')" class="px-2.5 py-1 rounded-lg font-semibold text-xs text-slate-400 hover:text-white">
+            📄 Scanned Form
+          </button>
+        </div>
+
+        <!-- Nudge / Reset Text Boxes -->
+        <div class="flex items-center gap-1.5">
+          <button onclick="resetTextBoxPositions()" title="Reset all text boxes to default coordinates" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700">
+            ↺ Reset Layout
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Live Interactive Document Viewport -->
+      <div class="bg-slate-900/50 border border-slate-800/80 rounded-3xl p-4 sm:p-8 flex items-center justify-center overflow-auto max-h-[85vh]">
+        
+        <div id="doc-preview-wrapper" class="canvas-container bg-white rounded-lg shadow-2xl relative overflow-hidden" style="width: 580px; height: 752px;">
+          
+          <!-- Background Document Render Canvas (Underneath) -->
+          <canvas id="doc-render-canvas" width="1160" height="1504" class="w-full h-full block pointer-events-none"></canvas>
+
+          <!-- INTERACTIVE FLOATING TEXT BOXES LAYER (Directly click/drag on document) -->
+          <div id="interactive-overlay" class="absolute inset-0 z-20">
+            
+            <!-- Revision No Box -->
+            <div id="box-revNo" class="draggable-box" style="top: 24px; left: 380px; min-width: 50px;">
+              <span class="text-[11px] font-bold text-slate-900 bg-white/90 px-1 rounded select-none pointer-events-none" id="label-revNo">01</span>
+            </div>
+
+            <!-- Revision Date Box (With Background Whiteout!) -->
+            <div id="box-revDate" class="draggable-box" style="top: 24px; left: 450px; min-width: 90px;">
+              <span class="text-[11px] font-bold text-slate-900 bg-white px-1 rounded select-none pointer-events-none shadow-sm" id="label-revDate">August 2026</span>
+            </div>
+
+            <!-- Form Date Box -->
+            <div id="box-formDate" class="draggable-box" style="top: 48px; left: 450px; min-width: 90px;">
+              <span class="text-[11px] font-medium text-slate-900 bg-white/90 px-1 rounded select-none pointer-events-none" id="label-formDate">10/29/2026</span>
+            </div>
+
+            <!-- Parent Name Box -->
+            <div id="box-parentName" class="draggable-box" style="top: 310px; left: 45px; min-width: 220px;">
+              <span class="text-[12px] font-bold text-slate-950 bg-white/90 px-1 rounded select-none pointer-events-none underline decoration-slate-400" id="label-parentName">[PARENT/GUARDIAN NAME]</span>
+            </div>
+
+            <!-- Student Name Box -->
+            <div id="box-studentName" class="draggable-box" style="top: 330px; left: 45px; min-width: 220px;">
+              <span class="text-[12px] font-bold text-slate-950 bg-white/90 px-1 rounded select-none pointer-events-none underline decoration-slate-400" id="label-studentName">[STUDENT FULL NAME]</span>
+            </div>
+
+            <!-- Student Number Box -->
+            <div id="box-studentNumber" class="draggable-box" style="top: 330px; left: 360px; min-width: 120px;">
+              <span class="text-[12px] font-mono font-bold text-slate-950 bg-white/90 px-1 rounded select-none pointer-events-none" id="label-studentNumber">2026XXXXXX</span>
+            </div>
+
+            <!-- Organization Name Box -->
+            <div id="box-orgName" class="draggable-box" style="top: 350px; left: 240px; min-width: 100px;">
+              <span class="text-[12px] font-extrabold text-slate-950 bg-white/90 px-1 rounded select-none pointer-events-none text-amber-600" id="label-orgName">MALAYA</span>
+            </div>
+
+            <!-- Parent Signature Preview Box -->
+            <div id="box-parentSig" class="draggable-box" style="top: 435px; left: 160px; width: 240px; height: 50px;">
+              <div id="img-container-parentSig" class="w-full h-full flex items-center justify-center select-none pointer-events-none">
+                <span class="text-xs text-slate-400 italic">(Parent Signature Placeholder)</span>
+              </div>
+            </div>
+
+            <!-- Parent Printed Name Box -->
+            <div id="box-parentPrintedName" class="draggable-box" style="top: 485px; left: 120px; min-width: 320px; text-align: center;">
+              <span class="text-[11px] font-bold text-slate-950 bg-white/90 px-1 rounded select-none pointer-events-none" id="label-parentPrintedName">SIGNATURE OVER PRINTED NAME OF PARENT/GUARDIAN</span>
+            </div>
+
+            <!-- Student Signature Preview Box -->
+            <div id="box-studentSig" class="draggable-box" style="top: 610px; left: 160px; width: 240px; height: 50px;">
+              <div id="img-container-studentSig" class="w-full h-full flex items-center justify-center select-none pointer-events-none">
+                <span class="text-xs text-slate-400 italic">(Student Signature Placeholder)</span>
+              </div>
+            </div>
+
+            <!-- Student Printed Name Box -->
+            <div id="box-studentPrintedName" class="draggable-box" style="top: 660px; left: 120px; min-width: 320px; text-align: center;">
+              <span class="text-[11px] font-bold text-slate-950 bg-white/90 px-1 rounded select-none pointer-events-none" id="label-studentPrintedName">SIGNATURE OVER PRINTED NAME OF STUDENT</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Quick Tips & Instructions -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-400">
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+          <span class="font-bold text-slate-200">💡 Flexible Text Boxes</span>
+          <p>You can drag and reposition any text box directly on the document canvas if you need micro-adjustments.</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+          <span class="font-bold text-slate-200">🧼 Auto-Whiteout</span>
+          <p>Revision dates and original lines are cleanly whited out to match the clean background perfectly.</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+          <span class="font-bold text-slate-200">🚀 Zero Uploads</span>
+          <p>All signatures and data remain in your browser locally. No personal data is sent to any server.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 text-slate-500 text-xs py-4 px-6 text-center">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <span>Student Affairs Office (SAO) Official Form 002A Compliance • Mapúa Malayan Colleges Laguna</span>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/Soyaaaa081305/sao-002a-waiver" target="_blank" class="hover:text-slate-300 transition-colors">GitHub Repository</a>
+        <a href="https://drive.google.com/drive/u/0/folders/1vDQ7dbCxyB2_UHL032OnlZZRJxUHrACl" target="_blank" class="hover:text-slate-300 transition-colors">Malaya Drive</a>
+        <a href="https://drive.google.com/drive/folders/1OT8x7mthyEwdF_QPkgRDgA-uH2Wv3DPd" target="_blank" class="hover:text-slate-300 transition-colors">JISSA Drive</a>
+      </div>
+    </div>
   </footer>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script src="app.js"></script>
 </body>
 </html>
